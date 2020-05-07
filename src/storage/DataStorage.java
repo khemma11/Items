@@ -95,8 +95,8 @@ public class DataStorage {
             Item next = iterator.next();
             if (next.getUser().equals(user)) {
                 iterator.remove();
-                FileUtil.serializeUserMap(userMap);
             }
+            FileUtil.serializeUserMap(userMap);
         }
 //        items.removeIf(item -> item.getUser().equals(user));
     }
