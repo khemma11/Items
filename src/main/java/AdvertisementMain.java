@@ -1,15 +1,21 @@
-package main;
-
+import com.sun.deploy.security.SelectableSecurityManager;
 import command.Commands;
 import model.Category;
 import model.Gender;
 import model.Item;
 import model.User;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import storage.DataStorage;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Scanner;
+
 
 public class AdvertisementMain  implements Commands {
 
@@ -39,10 +45,51 @@ public class AdvertisementMain  implements Commands {
                 case REGISTER:
                     registerUser();
                     break;
+                case IMPORT_USERS:
+                    importFromXlsx();
+                    break;
                 default:
                     System.out.println("Wrong command!");
             }
         }
+    }
+
+    private static void importFromXlsx() {
+        System.out.println("Please select xlsx path");
+        String xlsxPath = scanner.nextLine();
+        try {
+            XSSFWorkbook workbook = new XSSFWorkbook(xlsxPath);
+            Sheet sheet = workbook.getSheetAt(0);
+            int lastRowNum = sheet.getLastRowNum();
+            for (int i = 1; i <= lastRowNum; i++) {
+                Row row = sheet.getRow(i);
+                String name = row.getCell(0).getStringCellValue();
+                String surname = row.getCell(1).getStringCellValue();
+                Double age = row.getCell(2).getNumericCellValue();
+                Gender gender = Gender.valueOf(row.getCell(3).getStringCellValue());
+                Cell phoneNumber = row.getCell(4);
+                String phoneNumberStr = phoneNumber.getCellType() == CellType.NUMERIC ?
+                        String.valueOf(Double.valueOf(phoneNumber.getNumericCellValue()).intValue()) : phoneNumber.getStringCellValue();
+                Cell password = row.getCell(5);
+                String passwordStr = password.getCellType() == CellType.NUMERIC ?
+                        String.valueOf(Double.valueOf(password.getNumericCellValue()).intValue()) : password.getStringCellValue();
+                User user  = new User();
+                user.setName(name);
+                user.setSurName(surname);
+                user.setAge(age.intValue());
+                user.setGender(gender);
+                user.setPhonNumber(phoneNumberStr);
+                user.setPassword(passwordStr);
+                System.out.println(user);
+                dataStorage.add(user);
+
+            } System.out.println("Import was success!");
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+            System.out.println("Error while importing users");
+        }
+
+
     }
 
     private static void registerUser() {

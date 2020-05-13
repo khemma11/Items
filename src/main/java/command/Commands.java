@@ -6,6 +6,7 @@ public interface Commands {
     int EXIT = 0;
     int LOGIN = 1;
     int REGISTER = 2;
+    int IMPORT_USERS = 3;
 
     //item commands
     int LOGOUT = 0;
@@ -22,6 +23,7 @@ public interface Commands {
         System.out.println("Please input " + EXIT + " for exit");
         System.out.println("Please input " + LOGIN + " for login");
         System.out.println("Please input " + REGISTER + " for register");
+        System.out.println("Please input " + IMPORT_USERS + " for import users");
 
 
     }

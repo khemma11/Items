@@ -23,7 +23,7 @@ public class DataStorage {
     public void add(Item item) throws IOException {
         item.setId(itemId++);
         items.add(item);
-        FileUtil.serializeItem(items);
+        FileUtil.serializeItemList(items);
 
     }
 
@@ -103,7 +103,7 @@ public class DataStorage {
 
     public void deleteItemsById(long id) throws IOException {
         items.remove(getItemById(id));
-        FileUtil.serializeItem(items);
+        FileUtil.serializeItemList(items);
     }
 
     public boolean isEmptyUser() {
@@ -115,7 +115,11 @@ public class DataStorage {
     }
 
     public void initData() throws IOException, ClassNotFoundException {
-        items = FileUtil.deSerializeItem();
-        userMap = FileUtil.deSerializeUserMap();
+        items = FileUtil.deserializeItemList();
+        userMap = FileUtil.deserializeUserMap();
+        if (items!=null && !items.isEmpty()){
+           Item item = items.get(items.size()-1);
+            itemId = item.getId() +1;
+        }
     }
 }
