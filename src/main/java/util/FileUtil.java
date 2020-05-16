@@ -49,6 +49,9 @@ public class FileUtil {
             try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(ITEM_LIST_PATH))) {
                 Object o = objectInputStream.readObject();
                 return (List<Item>) o;
+            } catch (EOFException e){
+                e.getMessage();
+
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }

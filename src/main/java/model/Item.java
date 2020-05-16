@@ -1,10 +1,12 @@
 package model;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Date;
 @Data
+@NoArgsConstructor
 public class Item implements Comparable<Item>, Serializable {
     private long id;
     private String title;
@@ -22,6 +24,7 @@ public class Item implements Comparable<Item>, Serializable {
         this.category = category;
         this.createdDate = createdDate;
     }
+
 
     @Override
     public int compareTo(Item o) {

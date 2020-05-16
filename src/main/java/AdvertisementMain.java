@@ -4,16 +4,18 @@ import model.Category;
 import model.Gender;
 import model.Item;
 import model.User;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import storage.DataStorage;
+import util.FileUtil;
+
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Scanner;
 
 
@@ -151,6 +153,9 @@ public class AdvertisementMain  implements Commands {
                 case LOGOUT:
                     isRun = false;
                     break;
+                case IMPORT_ITEMS:
+                    importItemsFromXlsx();
+                    break;
                 case ADD_NEW_ITEMS:
                     addedNewItem();
                     break;
@@ -175,13 +180,116 @@ public class AdvertisementMain  implements Commands {
                 case DELETE_ITEMS_BY_ID:
                     deletById();
                     break;
+                case EXPORT_ITEMS:
+                    exportItemsFromXlsx();
                 default:
                     System.out.println("Wrong command!");
             }
         }
     }
 
-    private static void deletById() throws IOException {
+    private static void exportItemsFromXlsx() {
+        Runnable runable = new Runnable() {
+            @Override
+            public void run() {
+                List<Item> items = FileUtil.deserializeItemList();
+                XSSFWorkbook workbook = new XSSFWorkbook();
+                XSSFSheet sheet = workbook.createSheet();
+                createHeader(sheet, workbook);
+                int index= 1;
+                for (Item item : items) {
+                    Row row = sheet.createRow(index);
+                    row.createCell(0).setCellValue(item.getTitle());
+                    row.createCell(1).setCellValue(item.getText());
+                    row.createCell(2).setCellValue(item.getPrice());
+                    row.createCell(3).setCellValue(item.getCreatedDate().toString());
+                    row.createCell(4).setCellValue(String.valueOf(item.getCategory()));
+                    index++;
+                    System.out.println(item);
+                }
+                final String FILE_EXPORT_FILE =
+                        "C:\\Users\\Aka\\IdeaProjects\\Items\\src\\main\\resources\\itemsExport.xlsx";
+                File file = new File(FILE_EXPORT_FILE);
+                try {
+                    if (!file.exists()) {
+                        file.createNewFile();
+                    }
+                    FileOutputStream fileOutputStream = new FileOutputStream(new File(FILE_EXPORT_FILE));
+                    workbook.write(fileOutputStream);
+                    workbook.close();
+                    System.out.println("itemsExport.xlsx file was successfully exported!!");
+                } catch (IOException e) {
+                    e.printStackTrace();
+
+                }
+            }
+        };
+
+        Thread thread = new Thread(runable);
+        thread.start();
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+
+    }
+    private static void createHeader(XSSFSheet sheet, XSSFWorkbook  workbook) {
+        Row headerRow = sheet.createRow(0);
+        headerRow.createCell(0).setCellValue(" Item title");
+        headerRow.createCell(1).setCellValue(" Item text");
+        headerRow.createCell(2).setCellValue(" Item price");
+        headerRow.createCell(3).setCellValue(" Item createdDate");
+        headerRow.createCell(4).setCellValue(" Item Category");
+    }
+
+    private static void importItemsFromXlsx() {
+        Runnable runable = new Runnable() {
+            @Override
+            public void run() {
+                System.out.println("Please select xlsx path");
+                String xlsxPath = scanner.nextLine();
+                try {
+                    XSSFWorkbook workbook = new XSSFWorkbook(xlsxPath);
+                    XSSFSheet sheet = workbook.getSheetAt(0);
+                    int lastRowNum = sheet.getLastRowNum();
+                    for (int i = 1; i <= lastRowNum; i++) {
+                        Row row = sheet.getRow(i);
+                        String title = row.getCell(0).getStringCellValue();
+                        String text = row.getCell(1).getStringCellValue();
+                        Double price = row.getCell(2).getNumericCellValue();
+                        Date createdDate = row.getCell(3).getDateCellValue();
+                        Category category = Category.valueOf(row.getCell(4).getStringCellValue().toUpperCase());
+
+                        Item items = new Item();
+                        items.setTitle(title);
+                        items.setText(text);
+                        items.setPrice(price);
+                        items.setCreatedDate(new Date());
+                        items.setCategory(category);
+                        items.setUser(currentUser);
+                        System.out.println(items);
+
+                        dataStorage.add(items);
+                        System.out.println("Import was success!");
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    System.out.println("Error while importing users");
+                }
+            }
+        };
+        Thread thread = new Thread(runable);
+        thread.start();
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+    }
+        private static void deletById() throws IOException {
         System.out.println("please choose id from list");
         dataStorage.printItemsByUser(currentUser);
         long id = Long.parseLong(scanner.nextLine());
